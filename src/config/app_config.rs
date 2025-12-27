@@ -16,3 +16,21 @@ impl AppConfig {
         }
     }
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::env;
+
+    #[test]
+    fn loads_config_from_env() {
+        unsafe { env::set_var("TELEGRAM_CHAT_ID", "123"); }
+        unsafe { env::set_var("GOTIFY_CLIENT_TOKEN", "gotify"); }
+        unsafe { env::set_var("TELEGRAM_BOT_TOKEN", "telegram"); }
+
+        let cfg = AppConfig::from_env();
+
+        assert_eq!(cfg.telegram_chat_id, "123");
+        assert_eq!(cfg.gotify_token, "gotify");
+        assert_eq!(cfg.telegram_token, "telegram");
+    }
+}
