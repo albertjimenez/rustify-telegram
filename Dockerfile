@@ -1,19 +1,28 @@
-# ---- Build stage ----
 FROM rust:1.90 AS builder
 
 WORKDIR /app
 COPY . .
-RUN cargo build --release
 
-# ---- Final stage ----
-FROM debian:trixie-slim
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates && \
-    rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man /usr/share/locales
+# Determine target based on platform
+ARG TARGETARCH
+RUN if [ "$TARGETARCH" = "amd64" ]; then \
+        rustup target add x86_64-unknown-linux-musl && \
+        apt-get update && apt-get install -y musl-tools && \
+        rm -rf /var/lib/apt/lists/* && \
+        cargo build --target x86_64-unknown-linux-musl --release && \
+        strip target/x86_64-unknown-linux-musl/release/rustify-telegram; \
+    else \
+        rustup target add aarch64-unknown-linux-musl && \
+        apt-get update && apt-get install -y musl-tools && \
+        rm -rf /var/lib/apt/lists/* && \
+        cargo build --target aarch64-unknown-linux-musl --release && \
+        strip target/aarch64-unknown-linux-musl/release/rustify-telegram; \
+    fi
 
-# Set up working directory
-WORKDIR /app
+FROM scratch
 
-COPY --from=builder /app/target/release/rustify-telegram /app/rustify-telegram
-# Command
+ARG TARGETARCH
+# Copy the built binary
+COPY --from=builder /app/target/*-unknown-linux-musl/release/rustify-telegram /app/rustify-telegram
+
 ENTRYPOINT ["/app/rustify-telegram"]

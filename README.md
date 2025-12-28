@@ -5,7 +5,7 @@
 This project is designed to replace outdated Gotify plugins, providing a reliable and modern alternative for forwarding network device notifications or other alerts to Telegram.
 
 ## TODO
-- [ ] Use MUSL to build statically linked binary
+- [x] Use MUSL to build statically linked binary (multi arch)
 
 ## Table of Contents
  
@@ -27,7 +27,7 @@ This project is designed to replace outdated Gotify plugins, providing a reliabl
 - Supports dynamic linking (no static musl required)
 - Lightweight Docker deployment with multi-stage builds
 - Configurable environment variables for security and flexibility
-
+- Cross-architecture support: Added separate build stages for x86_64 and ARM64
 ---
 
 ## Getting Started
@@ -54,7 +54,11 @@ This project is designed to replace outdated Gotify plugins, providing a reliabl
 1. Build the Docker image:
 
 ```bash
-docker build -t rustify-telegram .
+# For x86_64 (Intel/AMD servers)
+docker build --platform linux/amd64 -t rustify-telegram:amd64 .
+
+# For ARM64 (Apple Silicon, Raspberry Pi)
+docker build --platform linux/arm64 -t rustify-telegram:arm64 .
 ```
 
 2. Run the container
